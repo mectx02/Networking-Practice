@@ -1,4 +1,4 @@
-package alwaysTrue;
+//package alwaysTrue;
 
 import java.io.*;
 import java.util.*;
@@ -15,7 +15,6 @@ public class ChattableServer {
 	class readMessages extends Thread {
 
 		readMessages() {
-			keyboard.nextInt();
 		}
 
 		@Override
@@ -75,11 +74,12 @@ public class ChattableServer {
 		}
 
 		System.out.println("Enter your username: ");
-		userName = keyboard.toString();
+		userName = keyboard.nextLine();
 
 		serverSocket = new ServerSocket(socketNum);
 		socket = serverSocket.accept();
 
+		//keyboard.nextLine(); // dummy read
 		new sendMessages().start();
 		new readMessages().start();
 
