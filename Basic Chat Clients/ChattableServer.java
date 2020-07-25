@@ -6,32 +6,93 @@ import java.net.*;
 
 public class ChattableServer {
 
-    public static void main(String[] args) throws IOException {
+	private int socketNum;
+	private String userName;
+	private Scanner keyboard = new Scanner(System.in);
+	private ServerSocket serverSocket;
+	private Socket socket;
 
-        Scanner keyboard = new Scanner(System.in);
+	class readMessages extends Thread {
 
-        ServerSocket serverSocket = new ServerSocket(5029);
-        Socket socket = serverSocket.accept();
+		readMessages() {
+			keyboard.nextInt();
+		}
 
-        DataInputStream serverInput = new DataInputStream(socket.getInputStream());
-        DataOutputStream serverOutput = new DataOutputStream(socket.getOutputStream());
+		@Override
+		public void run() {
+			DataInputStream serverInput = null;
+			try {
+				serverInput = new DataInputStream(socket.getInputStream());
+			} catch (IOException ex) {
+				//ex.printStackTrace();
+				System.exit(0);
+			}
 
-        while (socket.isConnected()) {
+			while (socket.isConnected()) {
+				try {
+					System.out.println("Received : " + (String) serverInput.readUTF());
+				} catch (IOException ex) {
+					//ex.printStackTrace();
+				}
+			}
+		}
+	}
 
-            String send = keyboard.nextLine();
-            serverOutput.writeUTF(send);
-            serverOutput.flush();
+	class sendMessages extends Thread {
 
-            System.out.println("\nWaiting for response...");
+		@Override
+		public void run() {
+			DataOutputStream serverOutput = null;
+			try {
+				serverOutput = new DataOutputStream(socket.getOutputStream());
+			} catch (IOException ex) {
+				//ex.printStackTrace();
+				System.exit(0);
+			}
 
-            System.out.println("Received : " + (String)serverInput.readUTF());
+			while (socket.isConnected()) {
+				String send = keyboard.nextLine();
+				try {
+					serverOutput.writeUTF(userName + ": " + send);
+					serverOutput.flush();
+				} catch (IOException e) {
+					//e.printStackTrace();
+				}
+			}
+		}
+	}
 
-        }
+	private void config() throws IOException {
 
-        socket.close();
-        serverSocket.close();
-        keyboard.close();
+		System.out.println("Enter the port (default is 5029): ");
 
-    }
+		try {
+			socketNum = Integer.parseInt(keyboard.nextLine());
+		} catch (Exception e) {
+			//e.printStackTrace();
+			System.out.println("Invalid port. Port set to 5029"); // Blank line
+			socketNum = 5029;
+		}
 
+		System.out.println("Enter your username: ");
+		userName = keyboard.toString();
+
+		serverSocket = new ServerSocket(socketNum);
+		socket = serverSocket.accept();
+
+		new sendMessages().start();
+		new readMessages().start();
+
+		while (socket.isConnected()) {
+			// Do nothing
+		}
+		socket.close();
+		serverSocket.close();
+		keyboard.close();
+	}
+
+	public static void main(String[] args) throws IOException {
+		ChattableServer server = new ChattableServer();
+		server.config();
+	}
 }
