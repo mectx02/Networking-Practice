@@ -3,32 +3,42 @@ package alwaysTrue;
 import java.io.*;
 import java.util.*;
 import java.net.*;
+import javax.swing.*;
 
 public class ChattableClient {
 
-	public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException {
 
-		Socket socket = new Socket("localhost", 5029);
-		Scanner keyboard = new Scanner(System.in);
+        //fancy way to set the ip address. Just shows an input dialog asking for an IP address to connect to.
+        String ipAddress = JOptionPane.showInputDialog(null, "Please enter an IP address that you want to connect to.\n" +
+                "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tLeave blank to default to localhost."); //Formatting is wonderful kids...
+        Socket socket;
 
-		DataInputStream clientInput = new DataInputStream(socket.getInputStream());
-		DataOutputStream clientOutput = new DataOutputStream(socket.getOutputStream());
+        if (ipAddress.matches("[0-9]{3}.[0-9]{3}.[0-9]{3}.[0-9]{3}"))
+            socket = new Socket(ipAddress, 5029);
+        else
+            socket = new Socket("localhost", 5029);
 
-		while (socket.isConnected()) {
+        Scanner keyboard = new Scanner(System.in);
 
-			System.out.println("Received : " + (String) clientInput.readUTF());
+        DataInputStream clientInput = new DataInputStream(socket.getInputStream());
+        DataOutputStream clientOutput = new DataOutputStream(socket.getOutputStream());
 
-			String send = keyboard.nextLine();
-			clientOutput.writeUTF(send);
-			clientOutput.flush();
+        while (socket.isConnected()) {
 
-			System.out.println("\nWaiting for response...");
+            System.out.println("Received : " + (String) clientInput.readUTF());
 
-		}
+            String send = keyboard.nextLine();
+            clientOutput.writeUTF(send);
+            clientOutput.flush();
 
-		socket.close();
-		keyboard.close();
+            System.out.println("\nWaiting for response...");
 
-	}
+        }
+
+        socket.close();
+        keyboard.close();
+
+    }
 
 }
